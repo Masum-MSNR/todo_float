@@ -24,7 +24,7 @@ class FloatingWidget:
         button_frame = tk.Frame(self.root, bg="black")
         button_frame.pack(side="bottom", fill="x")
 
-        self.toggle_button = tk.Button(button_frame, text="Turn OFF Always On Top", command=self.toggle_on_top,
+        self.toggle_button = tk.Button(button_frame, text="Not On Top", command=self.toggle_on_top,
                                        bg="blue", fg="white")
         self.toggle_button.pack(side="left", fill="both", expand=True)
 
@@ -51,18 +51,19 @@ class FloatingWidget:
             if 'var' not in todo:
                 todo['var'] = tk.IntVar(value=0)
 
-            canvas = tk.Canvas(todo_frame, width=24, height=24, bg="red", bd=0, highlightthickness=0)
+            canvas = tk.Canvas(todo_frame, width=24, height=24, bd=0, highlightthickness=0, bg="black")
             canvas.pack(side="left", padx=5, anchor="w")
+            canvas.create_oval(2, 2, 22, 22, fill="red", outline="red")
 
             if todo['checked']:
-                canvas.config(bg="green")
+                canvas.create_oval(2, 2, 22, 22, fill="green", outline="green")
             else:
-                canvas.config(bg="red")
+                canvas.create_oval(2, 2, 22, 22, fill="white", outline="white")
 
             canvas.bind("<Button-1>", lambda event, idx=i: self.toggle_rectangle(idx))
 
             label = tk.Label(todo_frame, text=todo['task'], fg="white", bg="black", font=("Arial", 10), anchor="w")
-            label.pack(side="left", fill="x", padx=10, anchor="w")
+            label.pack(side="left", fill="x", anchor="w")
 
             label.update_idletasks()
             delete_icon = PhotoImage(file="delete_icon.png")
@@ -83,6 +84,7 @@ class FloatingWidget:
         else:
             estimated_height = 28 * todo_count + 30
         self.root.geometry(f"300x{estimated_height}+1000+10")
+        self.snap_to_corner()
 
     def check_reset_time(self):
         current_time = datetime.now()
@@ -100,10 +102,10 @@ class FloatingWidget:
     def toggle_on_top(self):
         if self.root.wm_attributes("-topmost"):
             self.root.wm_attributes("-topmost", False)
-            self.toggle_button.config(text="Turn ON Always On Top")
+            self.toggle_button.config(text="On Top")
         else:
             self.root.wm_attributes("-topmost", True)
-            self.toggle_button.config(text="Turn OFF Always On Top")
+            self.toggle_button.config(text="Not On Top")
 
     def add_todo(self):
         todo_text = askstring("To-Do", "Enter your task:", parent=self.root)
@@ -122,12 +124,14 @@ class FloatingWidget:
     def update_single_rectangle(self, idx):
         todo = self.todos[idx]
         todo_frame = self.todo_frame.winfo_children()[idx]
+
         for widget in todo_frame.winfo_children():
             if isinstance(widget, tk.Canvas):
+                widget.delete("all")
                 if todo['checked']:
-                    widget.config(bg="green")
+                    widget.create_oval(2, 2, 22, 22, fill="green", outline="green")
                 else:
-                    widget.config(bg="red")
+                    widget.create_oval(2, 2, 22, 22, fill="white", outline="white")
 
     def delete_todo(self, idx):
         del self.todos[idx]

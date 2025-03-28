@@ -80,7 +80,7 @@ class FloatingWidget:
             move_up_icon = move_up_icon.subsample(12, 12)
             move_up_label = tk.Label(todo_frame, image=move_up_icon, bg="black", width=20, height=20)
             move_up_label.photo = move_up_icon
-            move_up_label.pack(side="right", padx=5)
+            move_up_label.pack(side="right")
 
             move_up_label.bind("<Button-1>", lambda event, idx=i: self.move_up(idx))
 

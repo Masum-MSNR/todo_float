@@ -41,6 +41,7 @@ Thumbs.db
 
 
 # Mine
+main.spec
 todos.pkl
 window_position.pkl
 window_on_top.pkl

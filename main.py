@@ -13,7 +13,6 @@ class FloatingWidget:
         self.root.configure(bg="black")
         self.root.wm_attributes("-alpha", 0.8)
         self.root.overrideredirect(True)
-        self.root.wm_attributes("-topmost", True)
 
         self.todo_frame = tk.Frame(self.root, bg="black")
         self.todo_frame.pack(fill="both", expand=True)
@@ -38,6 +37,8 @@ class FloatingWidget:
         self.reset_time = "06:00:00"
         self.check_reset_time()
 
+        self.on_top = self.load_on_top_state()
+        self.set_on_top(self.on_top)
         self.restore_position()
 
     def update_todo_list(self):
@@ -130,12 +131,17 @@ class FloatingWidget:
         self.update_todo_list()
 
     def toggle_on_top(self):
-        if self.root.wm_attributes("-topmost"):
-            self.root.wm_attributes("-topmost", False)
-            self.toggle_button.config(text="On Top")
-        else:
+        self.on_top = not self.on_top
+        self.set_on_top(self.on_top)
+        self.save_on_top_state(self.on_top)
+
+    def set_on_top(self, on_top):
+        if on_top:
             self.root.wm_attributes("-topmost", True)
             self.toggle_button.config(text="Not On Top")
+        else:
+            self.root.wm_attributes("-topmost", False)
+            self.toggle_button.config(text="On Top")
 
     def add_todo(self):
         todo_text = askstring("To-Do", "Enter your task:", parent=self.root)
@@ -186,6 +192,19 @@ class FloatingWidget:
             except (EOFError, pickle.UnpicklingError):
                 return []
         return []
+
+    def save_on_top_state(self, on_top):
+        with open("window_on_top.pkl", "wb") as f:
+            pickle.dump(on_top, f)
+
+    def load_on_top_state(self):
+        if os.path.exists("window_on_top.pkl"):
+            try:
+                with open("window_on_top.pkl", "rb") as f:
+                    return pickle.load(f)
+            except (EOFError, pickle.UnpicklingError):
+                return False
+        return False
 
     def save_position(self):
         self.root.update_idletasks()

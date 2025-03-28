@@ -9,21 +9,14 @@ from tkinter import PhotoImage
 class FloatingWidget:
     def __init__(self, root):
         self.root = root
-        self.root.geometry("300x400+1000+10")
+        self.root.geometry("300x300+1000+10")
         self.root.configure(bg="black")
         self.root.wm_attributes("-alpha", 0.8)
         self.root.overrideredirect(True)
         self.root.wm_attributes("-topmost", True)
 
-        self.canvas = tk.Canvas(self.root, bg="black")
-        self.scrollbar = tk.Scrollbar(self.root, orient="vertical", command=self.canvas.yview)
-        self.canvas.configure(yscrollcommand=self.scrollbar.set)
-
-        self.todo_frame = tk.Frame(self.canvas, bg="black")
-        self.canvas.create_window((0, 0), window=self.todo_frame, anchor="nw")
-
-        self.scrollbar.pack(side="right", fill="y")
-        self.canvas.pack(side="top", fill="both", expand=True)
+        self.todo_frame = tk.Frame(self.root, bg="black")
+        self.todo_frame.pack(fill="both", expand=True)
 
         self.todos = self.load_todos()
         self.update_todo_list()
@@ -38,15 +31,58 @@ class FloatingWidget:
         self.add_todo_button = tk.Button(button_frame, text="Add To-Do", command=self.add_todo, bg="green", fg="white")
         self.add_todo_button.pack(side="left", fill="both", expand=True)
 
-        self.todo_frame.update_idletasks()
-        self.canvas.config(scrollregion=self.canvas.bbox("all"))
-
         self.root.bind("<ButtonPress-1>", self.start_move)
         self.root.bind("<B1-Motion>", self.on_move)
         self.root.bind("<ButtonRelease-1>", self.stop_move)
 
         self.reset_time = "06:00:00"
         self.check_reset_time()
+
+        self.restore_position()
+
+    def update_todo_list(self):
+        for widget in self.todo_frame.winfo_children():
+            widget.destroy()
+
+        for i, todo in enumerate(self.todos):
+            todo_frame = tk.Frame(self.todo_frame, bg="black")
+            todo_frame.pack(fill="x", pady=2, anchor="w")
+
+            if 'var' not in todo:
+                todo['var'] = tk.IntVar(value=0)
+
+            canvas = tk.Canvas(todo_frame, width=24, height=24, bg="red", bd=0, highlightthickness=0)
+            canvas.pack(side="left", padx=5, anchor="w")
+
+            if todo['checked']:
+                canvas.config(bg="green")
+            else:
+                canvas.config(bg="red")
+
+            canvas.bind("<Button-1>", lambda event, idx=i: self.toggle_rectangle(idx))
+
+            label = tk.Label(todo_frame, text=todo['task'], fg="white", bg="black", font=("Arial", 10), anchor="w")
+            label.pack(side="left", fill="x", padx=10, anchor="w")
+
+            label.update_idletasks()
+            delete_icon = PhotoImage(file="delete_icon.png")
+            delete_icon = delete_icon.subsample(12, 12)
+            delete_label = tk.Label(todo_frame, image=delete_icon, bg="black", width=20, height=20)
+            delete_label.photo = delete_icon
+            delete_label.pack(side="right", padx=5)
+
+            delete_label.bind("<Button-1>", lambda event, idx=i: self.delete_todo(idx))
+
+        self.todo_frame.update_idletasks()
+        self.adjust_window_height()
+
+    def adjust_window_height(self):
+        todo_count = len(self.todos)
+        if todo_count == 0:
+            estimated_height = 58
+        else:
+            estimated_height = 28 * todo_count + 30
+        self.root.geometry(f"300x{estimated_height}+1000+10")
 
     def check_reset_time(self):
         current_time = datetime.now()
@@ -76,33 +112,6 @@ class FloatingWidget:
             self.todos.append(todo)
             self.save_todos()
             self.update_todo_list()
-
-    def update_todo_list(self):
-        for widget in self.todo_frame.winfo_children():
-            widget.destroy()
-        for i, todo in enumerate(self.todos):
-            todo_frame = tk.Frame(self.todo_frame, bg="black")
-            todo_frame.pack(fill="x", pady=2, anchor="w")
-            if 'var' not in todo:
-                todo['var'] = tk.IntVar(value=0)
-            canvas = tk.Canvas(todo_frame, width=20, height=20, bg="red", bd=0, highlightthickness=0)
-            canvas.pack(side="left", padx=5, anchor="w")
-            if todo['checked']:
-                canvas.config(bg="green")
-            else:
-                canvas.config(bg="red")
-            canvas.bind("<Button-1>", lambda event, idx=i: self.toggle_rectangle(idx))
-            label = tk.Label(todo_frame, text=todo['task'], fg="white", bg="black", font=("Arial", 10), anchor="w",
-                             width=23)
-            label.pack(side="left", fill="x", padx=10, anchor="w")
-            delete_icon = PhotoImage(file="delete_icon.png")
-            delete_icon = delete_icon.subsample(12, 12)
-            delete_label = tk.Label(todo_frame, image=delete_icon, bg="black", width=20, height=20)
-            delete_label.photo = delete_icon
-            delete_label.pack(side="right", padx=5)
-            delete_label.bind("<Button-1>", lambda event, idx=i: self.delete_todo(idx))
-            self.todo_frame.update_idletasks()
-            self.canvas.config(scrollregion=self.canvas.bbox("all"))
 
     def toggle_rectangle(self, idx):
         todo = self.todos[idx]
@@ -144,6 +153,25 @@ class FloatingWidget:
                 return []
         return []
 
+    def save_position(self):
+        self.root.update_idletasks()
+        position = (self.root.winfo_x(), self.root.winfo_y(), self.root.winfo_width(), self.root.winfo_height())
+        with open("window_position.pkl", "wb") as f:
+            pickle.dump(position, f)
+
+    def restore_position(self):
+        screen_width = self.root.winfo_screenwidth()
+        if os.path.exists("window_position.pkl"):
+            try:
+                with open("window_position.pkl", "rb") as f:
+                    position = pickle.load(f)
+                    if position:
+                        self.root.geometry(f"+{position[0]}+{position[1]}")
+                        return
+            except (EOFError, pickle.UnpicklingError):
+                pass
+        self.root.geometry(f"+{screen_width - 300}+0")
+
     def start_move(self, event):
         self.x = event.x
         self.y = event.y
@@ -153,22 +181,17 @@ class FloatingWidget:
 
     def snap_to_corner(self):
         screen_width = self.root.winfo_screenwidth()
-        screen_height = self.root.winfo_screenheight()
         win_x = self.root.winfo_x()
-        win_y = self.root.winfo_y()
         win_width = 300
-        win_height = 400
-        corners = {
-            "top-left": (0, 0),
-            "top-right": (screen_width - win_width, 0),
-            "bottom-left": (0, screen_height - win_height),
-            "bottom-right": (screen_width - win_width, screen_height - win_height)
-        }
-        closest_corner = min(corners, key=lambda c: (abs(win_x - corners[c][0]) + abs(win_y - corners[c][1])))
-        self.root.geometry(f"+{corners[closest_corner][0]}+{corners[closest_corner][1]}")
+
+        if win_x < screen_width / 2:
+            self.root.geometry(f"+0+0")  # Snap to top-left
+        else:
+            self.root.geometry(f"+{screen_width - win_width}+0")  # Snap to top-right
 
     def stop_move(self, event):
         self.snap_to_corner()
+        self.save_position()
 
 
 root = tk.Tk()

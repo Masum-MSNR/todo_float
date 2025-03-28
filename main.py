@@ -30,6 +30,10 @@ class FloatingWidget:
         self.add_todo_button = tk.Button(button_frame, text="Add To-Do", command=self.add_todo, bg="green", fg="white")
         self.add_todo_button.pack(side="left", fill="both", expand=True)
 
+        self.close_button = tk.Button(button_frame, text="X", command=self.close_app, bg="red", fg="white",
+                                      font=("Arial", 12, "bold"))
+        self.close_button.pack(side="right", fill="both", expand=True)
+
         self.root.bind("<ButtonPress-1>", self.start_move)
         self.root.bind("<B1-Motion>", self.on_move)
         self.root.bind("<ButtonRelease-1>", self.stop_move)
@@ -40,6 +44,10 @@ class FloatingWidget:
         self.on_top = self.load_on_top_state()
         self.set_on_top(self.on_top)
         self.restore_position()
+
+    def close_app(self):
+        self.root.quit()
+        self.root.destroy()
 
     def update_todo_list(self):
         for widget in self.todo_frame.winfo_children():
@@ -176,14 +184,25 @@ class FloatingWidget:
 
     def save_todos(self):
         serializable_todos = [{'task': todo['task'], 'checked': todo['checked']} for todo in self.todos]
-        with open("todos.pkl", "wb") as f:
+
+        # Get the path to the user's AppData folder
+        app_data_dir = os.path.join(os.getenv('APPDATA'), 'TODO Float')
+        os.makedirs(app_data_dir, exist_ok=True)
+
+        todos_pickle = os.path.join(app_data_dir, 'todos.pkl')
+
+        with open(todos_pickle, "wb") as f:
             pickle.dump(serializable_todos, f)
 
     def load_todos(self):
-        if os.path.exists("todos.pkl"):
+        # Get the path to the user's AppData folder
+        app_data_dir = os.path.join(os.getenv('APPDATA'), 'TODO Float')
+        todos_pickle = os.path.join(app_data_dir, 'todos.pkl')
+
+        if os.path.exists(todos_pickle):
             try:
-                with open("todos.pkl", "rb") as f:
-                    if os.path.getsize("todos.pkl") > 0:
+                with open(todos_pickle, "rb") as f:
+                    if os.path.getsize(todos_pickle) > 0:
                         todos = pickle.load(f)
                         for todo in todos:
                             if 'var' not in todo:
@@ -194,13 +213,23 @@ class FloatingWidget:
         return []
 
     def save_on_top_state(self, on_top):
-        with open("window_on_top.pkl", "wb") as f:
+        # Get the path to the user's AppData folder
+        app_data_dir = os.path.join(os.getenv('APPDATA'), 'TODO Float')
+        os.makedirs(app_data_dir, exist_ok=True)
+
+        on_top_pickle = os.path.join(app_data_dir, 'window_on_top.pkl')
+
+        with open(on_top_pickle, "wb") as f:
             pickle.dump(on_top, f)
 
     def load_on_top_state(self):
-        if os.path.exists("window_on_top.pkl"):
+        # Get the path to the user's AppData folder
+        app_data_dir = os.path.join(os.getenv('APPDATA'), 'TODO Float')
+        on_top_pickle = os.path.join(app_data_dir, 'window_on_top.pkl')
+
+        if os.path.exists(on_top_pickle):
             try:
-                with open("window_on_top.pkl", "rb") as f:
+                with open(on_top_pickle, "rb") as f:
                     return pickle.load(f)
             except (EOFError, pickle.UnpicklingError):
                 return False
@@ -209,14 +238,26 @@ class FloatingWidget:
     def save_position(self):
         self.root.update_idletasks()
         position = (self.root.winfo_x(), self.root.winfo_y(), self.root.winfo_width(), self.root.winfo_height())
-        with open("window_position.pkl", "wb") as f:
+
+        # Get the path to the user's AppData folder
+        app_data_dir = os.path.join(os.getenv('APPDATA'), 'TODO Float')
+        os.makedirs(app_data_dir, exist_ok=True)
+
+        position_pickle = os.path.join(app_data_dir, 'window_position.pkl')
+
+        with open(position_pickle, "wb") as f:
             pickle.dump(position, f)
 
     def restore_position(self):
         screen_width = self.root.winfo_screenwidth()
-        if os.path.exists("window_position.pkl"):
+
+        # Get the path to the user's AppData folder
+        app_data_dir = os.path.join(os.getenv('APPDATA'), 'TODO Float')
+        position_pickle = os.path.join(app_data_dir, 'window_position.pkl')
+
+        if os.path.exists(position_pickle):
             try:
-                with open("window_position.pkl", "rb") as f:
+                with open(position_pickle, "rb") as f:
                     position = pickle.load(f)
                     if position:
                         self.root.geometry(f"+{position[0]}+{position[1]}")

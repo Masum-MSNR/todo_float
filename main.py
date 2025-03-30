@@ -30,7 +30,7 @@ class FloatingWidget:
         self.root.wm_attributes("-alpha", 0.8)
         self.root.overrideredirect(True)
 
-        self.todo_frame = tk.Frame(self.root, bg="black")
+        self.todo_frame = tk.Frame(self.root, bg="black", pady=5)
         self.todo_frame.pack(fill="both", expand=True)
 
         self.todos = self.load_todos()
@@ -139,9 +139,9 @@ class FloatingWidget:
     def adjust_window_height(self):
         todo_count = len(self.todos)
         if todo_count == 0:
-            self.estimated_height = 58
+            self.estimated_height = 68
         else:
-            self.estimated_height = 28 * todo_count + 30
+            self.estimated_height = 28 * todo_count + 40
         self.root.geometry(f"300x{self.estimated_height}+1000+10")
         self.snap_to_corner()
 

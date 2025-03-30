@@ -2,7 +2,10 @@
 
 ## Overview
 
-TODO Float is a lightweight, floating to-do list application built with Python's Tkinter library. It allows users to manage tasks on their desktop with a simple and intuitive interface. The app remains on top of other windows and allows users to add, delete, move, and check off tasks as completed. It also supports a reset feature to clear tasks at a set time each day.
+TODO Float is a lightweight, floating to-do list application built with Python's Tkinter library. It allows users to
+manage tasks on their desktop with a simple and intuitive interface. The app remains on top of other windows and allows
+users to add, delete, move, and check off tasks as completed. It also supports a reset feature to clear tasks at a set
+time each day.
 
 ![Cover Image](assets/img.png)
 
@@ -21,7 +24,7 @@ TODO Float is a lightweight, floating to-do list application built with Python's
 
 - Python 3.x
 - Tkinter library
-- `Pillow` (for image handling)
+- Pickle library
 
 To install Tkinter, use the following command:
 
@@ -29,10 +32,10 @@ To install Tkinter, use the following command:
 pip install tk
 ```
 
-If you encounter any issues with images, ensure you have the Pillow library installed:
+To install Pickle, use the following command:
 
-```bash
-pip install pillow
+```bash 
+pip install pickle
 ```
 
 ### Running the App

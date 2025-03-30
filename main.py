@@ -5,6 +5,7 @@ import os
 from datetime import datetime
 import socket
 from tkinter import PhotoImage
+import sys
 
 
 class SingleInstanceChecker:
@@ -97,7 +98,7 @@ class FloatingWidget:
 
             label.update_idletasks()
 
-            delete_icon = PhotoImage(file="delete_icon.png")
+            delete_icon = PhotoImage(file="assets/delete.png")
             delete_icon = delete_icon.subsample(12, 12)
             delete_label = tk.Label(todo_frame, image=delete_icon, bg="black", width=20, height=20)
             delete_label.photo = delete_icon
@@ -105,7 +106,7 @@ class FloatingWidget:
 
             delete_label.bind("<Button-1>", lambda event, idx=i: self.delete_todo(idx))
 
-            move_up_icon = PhotoImage(file="up.png")
+            move_up_icon = PhotoImage(file="assets/up.png")
             move_up_icon = move_up_icon.subsample(12, 12)
             move_up_label = tk.Label(todo_frame, image=move_up_icon, bg="black", width=20, height=20)
             move_up_label.photo = move_up_icon
@@ -113,7 +114,7 @@ class FloatingWidget:
 
             move_up_label.bind("<Button-1>", lambda event, idx=i: self.move_up(idx))
 
-            move_down_icon = PhotoImage(file="down.png")
+            move_down_icon = PhotoImage(file="assets/down.png")
             move_down_icon = move_down_icon.subsample(12, 12)
             move_down_label = tk.Label(todo_frame, image=move_down_icon, bg="black", width=20, height=20)
             move_down_label.photo = move_down_icon
@@ -324,7 +325,8 @@ class FloatingWidget:
 if __name__ == "__main__":
     instance_checker = SingleInstanceChecker()
     if instance_checker.is_already_running():
-        exit(0)
+        print("Another instance is already running.")
+        sys.exit(0)
 
     root = tk.Tk()
     app = FloatingWidget(root)
